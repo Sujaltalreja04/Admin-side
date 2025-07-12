@@ -357,6 +357,7 @@ function Sidebar({ activeSection, onSectionChange }) {
               <Icon className="icon">{item.icon}</Icon>
               <Label>{item.label}</Label>
               {item.badge && <Badge>{item.badge}</Badge>}
+              }
             </NavItem>
           ))}
         </NavSection>
