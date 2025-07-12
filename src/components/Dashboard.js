@@ -10,14 +10,18 @@ import {
   FaEdit,
   FaTrash,
   FaPlus,
-  FaSearch
+  FaSearch,
+  FaEye,
+  FaHeart,
+  FaComments,
+  FaTrendingUp
 } from 'react-icons/fa';
 import Sidebar from './Sidebar';
 import ExpertProfile from './ExpertProfile';
 import ExpertReview from './ExpertReview';
 import SiteContent from './SiteContent';
 import Card3D from './Card3D';
-import { PieChart, Pie, Cell, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Legend } from 'recharts';
+import { PieChart, Pie, Cell, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Legend, LineChart, Line, AreaChart, Area } from 'recharts';
 import { fetchExperts } from '../utils/api';
 import { format, subDays, isSameDay, parseISO } from 'date-fns';
 import Booking from './Booking';
@@ -33,41 +37,34 @@ const DashboardContainer = styled.div`
 const CenteredMainContent = styled.div`
   flex: 1;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   min-height: 100vh;
   background: none;
   background-color: transparent;
+  padding: 24px;
+  overflow-y: auto;
 `;
 
 const BigCard = styled.div`
-  background: white;
+  background: rgba(255,255,255,0.08);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.2);
   border-radius: 32px;
-  padding: 64px 48px;
-  box-shadow: 0 12px 48px rgba(0,0,0,0.12);
-  min-width: 700px;
-  max-width: 1100px;
+  padding: 48px 32px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+  min-width: 800px;
+  max-width: 1400px;
   width: 100%;
-  margin: 48px 0;
+  margin: 0;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  animation: fadeInUp 0.6s ease-out;
+  
   @media (max-width: 900px) {
     min-width: 0;
     max-width: 98vw;
-    padding: 32px 8px;
-  }
-`;
-
-const ContentArea = styled.div`
-  background: white;
-  border-radius: 20px;
-  padding: 40px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.10);
-  min-height: 500px;
-  @media (max-width: 768px) {
-    padding: 18px 10px;
-    border-radius: 12px;
+    padding: 24px 16px;
   }
 `;
 
@@ -76,231 +73,238 @@ const WelcomeSection = styled.div`
   margin-bottom: 40px;
   
   h1 {
-    color: #333;
-    font-size: 2.5rem;
-    margin-bottom: 10px;
+    background: linear-gradient(45deg, #6366f1, #ec4899, #a5b4fc);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-size: 2.8rem;
+    margin-bottom: 12px;
+    font-weight: 800;
+    letter-spacing: -1px;
   }
   
   p {
-    color: #666;
-    font-size: 1.1rem;
-    margin: 0;
-  }
-`;
-
-const StatsGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 20px;
-  margin-bottom: 40px;
-`;
-
-const StatCard = styled.div`
-  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
-  color: white;
-  padding: 25px;
-  border-radius: 15px;
-  text-align: center;
-  
-  h3 {
-    margin: 0 0 10px 0;
+    color: rgba(255,255,255,0.8);
     font-size: 1.2rem;
-  }
-  
-  .stat-number {
-    font-size: 2.5rem;
-    font-weight: bold;
-    margin-bottom: 5px;
-  }
-  
-  .stat-label {
-    font-size: 0.9rem;
-    opacity: 0.9;
-  }
-`;
-
-const QuickActions = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 15px;
-  margin-top: 30px;
-`;
-
-const ActionButton = styled.button`
-  background: white;
-  border: 2px solid #e1e5e9;
-  padding: 20px;
-  border-radius: 10px;
-  cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  transition: all 0.3s ease;
-  
-  &:hover {
-    border-color: #667eea;
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
-  }
-  
-  .icon {
-    font-size: 24px;
-    color: #667eea;
-  }
-  
-  span {
-    font-weight: 600;
-    color: #333;
+    margin: 0;
+    font-weight: 500;
   }
 `;
 
 const DashboardGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 24px;
-  margin-bottom: 32px;
+  margin-bottom: 40px;
+  
   @media (max-width: 1100px) {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, 1fr);
   }
   @media (max-width: 700px) {
     grid-template-columns: 1fr;
   }
 `;
 
-const Title = styled.h2`
-  color: #fff;
-  font-size: 1.1rem;
-  font-weight: 700;
-  margin-bottom: 12px;
-`;
-
-const Number = styled.div`
-  font-size: 2.6rem;
-  font-weight: 800;
-  color: #ffd700;
-  margin-bottom: 6px;
-`;
-
-const ModalOverlay = styled.div`
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.35);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 2000;
-`;
-const Modal3D = styled(Card3D)`
-  min-width: 800px;
-  max-width: 95vw;
-  min-height: 400px;
-  max-height: 80vh;
-  overflow-y: auto;
-  background: rgb(37, 39, 50);
-  box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.35), 0 2px 8px 0 rgba(0,0,0,0.22);
-`;
-const Table = styled.table`
-  width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
-  background: transparent;
-  border-radius: 16px;
+const StatCard = styled.div`
+  background: rgba(255,255,255,0.1);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 20px;
+  padding: 28px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  position: relative;
   overflow: hidden;
-  color: #fff;
-  font-size: 1rem;
-`;
-const Th = styled.th`
-  background: rgb(37, 39, 50);
-  color: #ffd700;
-  font-weight: 700;
-  padding: 14px 10px;
-  text-align: left;
-  border-bottom: 2px solid #22223b;
-`;
-const Td = styled.td`
-  padding: 12px 10px;
-  border-bottom: 1px solid #33364d;
-  color: #fff;
-  font-size: 1rem;
-  vertical-align: middle;
-`;
-const Tr = styled.tr`
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: ${props => props.gradient || 'linear-gradient(90deg, #6366f1, #ec4899)'};
+  }
+  
   &:hover {
-    background: rgba(34, 197, 94, 0.08);
-    transition: background 0.2s;
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+    background: rgba(255,255,255,0.15);
   }
 `;
-const ProfileImg = styled.img`
-  width: 38px;
-  height: 38px;
-  border-radius: 8px;
-  object-fit: cover;
-  border: 2px solid #667eea;
-  background: #22223b;
-`;
-const CloseBtn = styled.button`
-  position: absolute;
-  top: 18px;
-  right: 24px;
-  background: #e74c3c;
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  padding: 8px 18px;
-  font-weight: 700;
-  font-size: 1rem;
-  cursor: pointer;
-  z-index: 10;
-  box-shadow: 0 2px 8px rgba(231, 76, 60, 0.18);
-  &:hover { background: #c0392b; }
-`;
 
-const LargeChartWrapper = styled.div`
-  width: 80vw;
-  max-width: 1100px;
-  height: 60vh;
-  margin: 32px auto 0 auto;
-  background: rgb(37, 39, 50);
-  border-radius: 18px;
-  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.25), 0 1.5px 6px 0 rgba(0,0,0,0.18);
+const StatIcon = styled.div`
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  background: ${props => props.gradient || 'linear-gradient(135deg, #6366f1, #ec4899)'};
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 32px 0;
+  color: white;
+  font-size: 24px;
+  margin-bottom: 16px;
+  box-shadow: 0 8px 24px rgba(99, 102, 241, 0.3);
 `;
 
-// Add styled components for the booked expert list table
-const BookingTable = styled.table`
-  width: 100%;
-  border-collapse: collapse;
-  background: #fff;
+const StatNumber = styled.div`
+  font-size: 2.4rem;
+  font-weight: 800;
+  color: #f8fafc;
+  margin-bottom: 8px;
+  line-height: 1;
 `;
-const BookingTh = styled.th`
-  color: #20511a;
-  font-size: 1.2rem;
-  font-weight: 700;
-  padding: 16px 12px;
-  background: #fff;
-  border-bottom: 2px solid #eaeaea;
-  text-align: left;
+
+const StatLabel = styled.div`
+  color: rgba(255,255,255,0.7);
+  font-size: 0.95rem;
+  font-weight: 500;
+  margin-bottom: 8px;
 `;
-const BookingTd = styled.td`
-  color: #222;
-  font-size: 1.1rem;
-  padding: 14px 12px;
-  border-bottom: 1px solid #f3f3f3;
+
+const StatChange = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.85rem;
+  color: ${props => props.positive ? '#22c55e' : '#ef4444'};
+  font-weight: 600;
 `;
-const BookingTr = styled.tr``;
-const BookingHighlightTr = styled.tr`
-  background: #f8f6d8;
+
+const ChartsSection = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  margin-bottom: 40px;
+  
+  @media (max-width: 1200px) {
+    grid-template-columns: 1fr;
+  }
+`;
+
+const ChartCard = styled.div`
+  background: rgba(255,255,255,0.08);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 24px;
+  padding: 32px;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 32px rgba(0,0,0,0.15);
+  }
+  
+  h3 {
+    color: #f8fafc;
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+`;
+
+const QuickActions = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  margin-top: 32px;
+`;
+
+const ActionButton = styled.button`
+  background: rgba(255,255,255,0.1);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.2);
+  padding: 20px;
+  border-radius: 16px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  transition: all 0.3s ease;
+  color: #f8fafc;
+  
+  &:hover {
+    background: rgba(255,255,255,0.15);
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(99, 102, 241, 0.2);
+  }
+  
+  .icon {
+    font-size: 28px;
+    color: #6366f1;
+  }
+  
+  span {
+    font-weight: 600;
+    font-size: 0.95rem;
+  }
+`;
+
+const RecentActivity = styled.div`
+  background: rgba(255,255,255,0.08);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 24px;
+  padding: 32px;
+  margin-top: 32px;
+  
+  h3 {
+    color: #f8fafc;
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+`;
+
+const ActivityItem = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  
+  &:last-child {
+    border-bottom: none;
+  }
+  
+  .avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #6366f1, #ec4899);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 700;
+    font-size: 0.9rem;
+  }
+  
+  .content {
+    flex: 1;
+    
+    .action {
+      color: #f8fafc;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    
+    .time {
+      color: rgba(255,255,255,0.6);
+      font-size: 0.85rem;
+    }
+  }
 `;
 
 function Dashboard({ user, onLogout }) {
   const [activeSection, setActiveSection] = useState('dashboard');
-  const [showExperts, setShowExperts] = useState(true);
-  const [showLargePie, setShowLargePie] = useState(false);
-  const [showLargeBar, setShowLargeBar] = useState(false);
   const [experts, setExperts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -317,146 +321,32 @@ function Dashboard({ user, onLogout }) {
       });
   }, []);
 
-  // Pie chart data
-  const getCategoryData = () => {
-    const counts = {};
-    experts.forEach(expert => {
-      const cat = expert.CATEGORY || 'Other';
-      counts[cat] = (counts[cat] || 0) + 1;
-    });
-    return Object.entries(counts).map(([name, value]) => ({ name, value }));
-  };
-  const categoryData = getCategoryData();
-  const COLORS = ['#22c55e', '#667eea', '#f59e42', '#e74c3c', '#4a4e69', '#ffd700'];
-
-  // Bar chart fake data
-  const fakeBarData = [
-    { name: 'Mon', experts: 2 },
-    { name: 'Tue', experts: 4 },
-    { name: 'Wed', experts: 1 },
-    { name: 'Thu', experts: 5 },
-    { name: 'Fri', experts: 3 },
-    { name: 'Sat', experts: 6 },
-    { name: 'Sun', experts: 2 },
+  // Chart data
+  const categoryData = [
+    { name: 'Technology', value: 35, color: '#6366f1' },
+    { name: 'Business', value: 25, color: '#ec4899' },
+    { name: 'Design', value: 20, color: '#22c55e' },
+    { name: 'Marketing', value: 15, color: '#f59e0b' },
+    { name: 'Other', value: 5, color: '#8b5cf6' }
   ];
 
-  // Bar chart real data (if you want to use it)
-  const getNewExpertsData = () => {
-    const days = Array.from({ length: 7 }).map((_, i) =>
-      format(subDays(new Date(), 6 - i), 'EEE')
-    );
-    if (!experts.length || !experts[0].CREATED_AT) {
-      return days.map(dayLabel => ({ date: dayLabel, experts: 0 }));
-    }
-    return days.map((dayLabel, i) => {
-      const dayDate = subDays(new Date(), 6 - i);
-      const count = experts.filter(expert => {
-        if (!expert.CREATED_AT) return false;
-        const regDate = typeof expert.CREATED_AT === 'string'
-          ? parseISO(expert.CREATED_AT)
-          : expert.CREATED_AT;
-        return isSameDay(regDate, dayDate);
-      }).length;
-      return { date: dayLabel, experts: count };
-    });
-  };
-  // const newExpertsData = getNewExpertsData(); // Use fakeBarData for now
+  const activityData = [
+    { name: 'Mon', users: 120, questions: 45, answers: 89 },
+    { name: 'Tue', users: 150, questions: 52, answers: 95 },
+    { name: 'Wed', users: 180, questions: 38, answers: 102 },
+    { name: 'Thu', users: 200, questions: 61, answers: 87 },
+    { name: 'Fri', users: 170, questions: 49, answers: 94 },
+    { name: 'Sat', users: 140, questions: 33, answers: 76 },
+    { name: 'Sun', users: 110, questions: 28, answers: 68 }
+  ];
 
-  // Table rendering
-  const renderTable = () => (
-    <div style={{ width: '100%', margin: '0 auto', marginTop: 32 }}>
-      <Modal3D style={{ minWidth: 800, maxWidth: '95vw', minHeight: 400, margin: '0 auto' }}>
-        <h2 style={{ color: '#ffd700', marginBottom: 18 }}>Expert List</h2>
-        {loading ? (
-          <div style={{ color: '#fff', padding: 32 }}>Loading...</div>
-        ) : error ? (
-          <div style={{ color: 'red', padding: 32 }}>{error}</div>
-        ) : (
-          <Table>
-            <thead>
-              <Tr>
-                <Th>Profile</Th>
-                <Th>Name</Th>
-                <Th>Title</Th>
-                <Th>Category</Th>
-                <Th>Rating</Th>
-                <Th>Location</Th>
-              </Tr>
-            </thead>
-            <tbody>
-              {experts.slice(0, 16).map(expert => (
-                <Tr key={expert.ID}>
-                  <Td>
-                    {expert.IMAGE ? (
-                      <ProfileImg src={expert.IMAGE} alt={expert.NAME} />
-                    ) : (
-                      <ProfileImg as="div" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: '#fff', fontWeight: 700, fontSize: '1.1rem' }}>
-                        {expert.NAME ? expert.NAME.charAt(0).toUpperCase() : 'E'}
-                      </ProfileImg>
-                    )}
-                  </Td>
-                  <Td>{expert.NAME}</Td>
-                  <Td>{expert.TITLE}</Td>
-                  <Td>{expert.CATEGORY}</Td>
-                  <Td>{expert.RATING}</Td>
-                  <Td>{expert.LOCATION}</Td>
-                </Tr>
-              ))}
-            </tbody>
-          </Table>
-        )}
-      </Modal3D>
-    </div>
-  );
-
-  // Large pie chart rendering
-  const renderLargePie = () => (
-    <LargeChartWrapper>
-      <ResponsiveContainer width="60%" height="90%">
-        <PieChart>
-          <Pie data={categoryData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={120} label>
-            {categoryData.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-            ))}
-          </Pie>
-          <Tooltip />
-          <Legend />
-        </PieChart>
-      </ResponsiveContainer>
-    </LargeChartWrapper>
-  );
-
-  // Large bar chart rendering
-  const renderLargeBar = () => (
-    <LargeChartWrapper>
-      <ResponsiveContainer width="80%" height="90%">
-        <BarChart data={fakeBarData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#33364d" />
-          <XAxis dataKey="name" stroke="#fff" fontSize={16} />
-          <YAxis stroke="#fff" fontSize={16} />
-          <Tooltip />
-          <Bar dataKey="experts" fill="#22c55e" radius={[8, 8, 0, 0]} />
-        </BarChart>
-      </ResponsiveContainer>
-    </LargeChartWrapper>
-  );
-
-  // Card click handlers
-  const handleShowExperts = () => {
-    setShowExperts(true);
-    setShowLargePie(false);
-    setShowLargeBar(false);
-  };
-  const handleShowLargePie = () => {
-    setShowExperts(false);
-    setShowLargePie(true);
-    setShowLargeBar(false);
-  };
-  const handleShowLargeBar = () => {
-    setShowExperts(false);
-    setShowLargePie(false);
-    setShowLargeBar(true);
-  };
+  const recentActivities = [
+    { user: 'Sarah J.', action: 'Posted a new question about React hooks', time: '2 minutes ago' },
+    { user: 'Mike C.', action: 'Answered a question about Node.js', time: '5 minutes ago' },
+    { user: 'Emily D.', action: 'Upvoted an answer about CSS Grid', time: '8 minutes ago' },
+    { user: 'David W.', action: 'Created a new tag: "machine-learning"', time: '12 minutes ago' },
+    { user: 'Lisa B.', action: 'Reported inappropriate content', time: '15 minutes ago' }
+  ];
 
   const renderContent = () => {
     switch (activeSection) {
@@ -470,50 +360,171 @@ function Dashboard({ user, onLogout }) {
         return <SiteContent />;
       default:
         return (
-          <div style={{ padding: '32px 24px' }}>
+          <div>
+            <WelcomeSection>
+              <h1>Welcome to StackIt</h1>
+              <p>Your modern Q&A platform administration center</p>
+            </WelcomeSection>
+
             <DashboardGrid>
-              {/* Card 1: Total Experts */}
-              <Card3D accent="linear-gradient(135deg, #22c55e 0%, #14532d 100%)" style={{ cursor: 'pointer' }} onClick={handleShowExperts}>
-                <Title>Total Experts</Title>
-                <Number>{loading ? '...' : experts.length}</Number>
-              </Card3D>
-              {/* Card 2: Total Reviews */}
-              <Card3D accent="linear-gradient(135deg, #667eea 0%, #764ba2 100%)">
-                <Title>Total Reviews</Title>
-                <Number>{loading ? '...' : experts.reduce((sum, expert) => sum + (parseInt(expert.REVIEWS, 10) || 0), 0)}</Number>
-              </Card3D>
-              {/* Card 3: Pie Chart of Categories (no label) */}
-              <Card3D accent="linear-gradient(135deg, #f59e42 0%, #e74c3c 100%)" style={{ cursor: 'pointer' }} onClick={handleShowLargePie}>
-                <Title>Expert Categories</Title>
-                <ResponsiveContainer width="100%" height={120}>
+              <StatCard gradient="linear-gradient(90deg, #6366f1, #8b5cf6)">
+                <StatIcon gradient="linear-gradient(135deg, #6366f1, #8b5cf6)">
+                  <FaUsers />
+                </StatIcon>
+                <StatNumber>{loading ? '...' : experts.length}</StatNumber>
+                <StatLabel>Total Experts</StatLabel>
+                <StatChange positive>
+                  <FaTrendingUp /> +12% this week
+                </StatChange>
+              </StatCard>
+
+              <StatCard gradient="linear-gradient(90deg, #ec4899, #f472b6)">
+                <StatIcon gradient="linear-gradient(135deg, #ec4899, #f472b6)">
+                  <FaComments />
+                </StatIcon>
+                <StatNumber>2,847</StatNumber>
+                <StatLabel>Total Questions</StatLabel>
+                <StatChange positive>
+                  <FaTrendingUp /> +8% this week
+                </StatChange>
+              </StatCard>
+
+              <StatCard gradient="linear-gradient(90deg, #22c55e, #16a34a)">
+                <StatIcon gradient="linear-gradient(135deg, #22c55e, #16a34a)">
+                  <FaHeart />
+                </StatIcon>
+                <StatNumber>5,234</StatNumber>
+                <StatLabel>Total Answers</StatLabel>
+                <StatChange positive>
+                  <FaTrendingUp /> +15% this week
+                </StatChange>
+              </StatCard>
+
+              <StatCard gradient="linear-gradient(90deg, #f59e0b, #d97706)">
+                <StatIcon gradient="linear-gradient(135deg, #f59e0b, #d97706)">
+                  <FaEye />
+                </StatIcon>
+                <StatNumber>18.2k</StatNumber>
+                <StatLabel>Active Users</StatLabel>
+                <StatChange positive>
+                  <FaTrendingUp /> +5% this week
+                </StatChange>
+              </StatCard>
+            </DashboardGrid>
+
+            <ChartsSection>
+              <ChartCard>
+                <h3>
+                  <FaChartBar style={{ color: '#6366f1' }} />
+                  Weekly Activity
+                </h3>
+                <ResponsiveContainer width="100%" height={300}>
+                  <AreaChart data={activityData}>
+                    <defs>
+                      <linearGradient id="colorUsers" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#6366f1" stopOpacity={0.8}/>
+                        <stop offset="95%" stopColor="#6366f1" stopOpacity={0.1}/>
+                      </linearGradient>
+                      <linearGradient id="colorQuestions" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#ec4899" stopOpacity={0.8}/>
+                        <stop offset="95%" stopColor="#ec4899" stopOpacity={0.1}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                    <XAxis dataKey="name" stroke="rgba(255,255,255,0.7)" />
+                    <YAxis stroke="rgba(255,255,255,0.7)" />
+                    <Tooltip 
+                      contentStyle={{ 
+                        background: 'rgba(30,41,59,0.9)', 
+                        border: '1px solid rgba(255,255,255,0.2)',
+                        borderRadius: '12px',
+                        backdropFilter: 'blur(20px)'
+                      }} 
+                    />
+                    <Area type="monotone" dataKey="users" stroke="#6366f1" fillOpacity={1} fill="url(#colorUsers)" strokeWidth={3} />
+                    <Area type="monotone" dataKey="questions" stroke="#ec4899" fillOpacity={1} fill="url(#colorQuestions)" strokeWidth={3} />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </ChartCard>
+
+              <ChartCard>
+                <h3>
+                  <FaUsers style={{ color: '#ec4899' }} />
+                  Expert Categories
+                </h3>
+                <ResponsiveContainer width="100%" height={300}>
                   <PieChart>
-                    <Pie data={categoryData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={40}>
+                    <Pie 
+                      data={categoryData} 
+                      dataKey="value" 
+                      nameKey="name" 
+                      cx="50%" 
+                      cy="50%" 
+                      outerRadius={100}
+                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                      labelLine={false}
+                    >
                       {categoryData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
                     </Pie>
-                    <Tooltip />
+                    <Tooltip 
+                      contentStyle={{ 
+                        background: 'rgba(30,41,59,0.9)', 
+                        border: '1px solid rgba(255,255,255,0.2)',
+                        borderRadius: '12px',
+                        backdropFilter: 'blur(20px)'
+                      }} 
+                    />
                   </PieChart>
                 </ResponsiveContainer>
-              </Card3D>
-              {/* Card 4: Bar Chart Card (fake data, no label) */}
-              <Card3D accent="linear-gradient(135deg, #22223b 0%, #4a4e69 100%)" style={{ cursor: 'pointer' }} onClick={handleShowLargeBar}>
-                <Title>New Experts (This Week)</Title>
-                <ResponsiveContainer width="100%" height={120}>
-                  <BarChart data={fakeBarData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#33364d" />
-                    <XAxis dataKey="name" stroke="#fff" fontSize={12} />
-                    <YAxis stroke="#fff" fontSize={12} />
-                    <Tooltip />
-                    <Bar dataKey="experts" fill="#22c55e" radius={[6, 6, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </Card3D>
-            </DashboardGrid>
-            {/* Large chart/table area below cards */}
-            {showExperts && renderTable()}
-            {showLargePie && renderLargePie()}
-            {showLargeBar && renderLargeBar()}
+              </ChartCard>
+            </ChartsSection>
+
+            <RecentActivity>
+              <h3>
+                <FaBell style={{ color: '#f59e0b' }} />
+                Recent Activity
+              </h3>
+              {recentActivities.map((activity, index) => (
+                <ActivityItem key={index}>
+                  <div className="avatar">
+                    {activity.user.charAt(0)}
+                  </div>
+                  <div className="content">
+                    <div className="action">{activity.action}</div>
+                    <div className="time">{activity.time}</div>
+                  </div>
+                </ActivityItem>
+              ))}
+            </RecentActivity>
+
+            <QuickActions>
+              <ActionButton onClick={() => setActiveSection('expert-profile')}>
+                <div className="icon">
+                  <FaUser />
+                </div>
+                <span>Manage Experts</span>
+              </ActionButton>
+              <ActionButton onClick={() => setActiveSection('expert-review')}>
+                <div className="icon">
+                  <FaStar />
+                </div>
+                <span>Review Content</span>
+              </ActionButton>
+              <ActionButton onClick={() => setActiveSection('site-content')}>
+                <div className="icon">
+                  <FaFileAlt />
+                </div>
+                <span>Site Content</span>
+              </ActionButton>
+              <ActionButton>
+                <div className="icon">
+                  <FaChartBar />
+                </div>
+                <span>View Analytics</span>
+              </ActionButton>
+            </QuickActions>
           </div>
         );
     }
@@ -531,4 +542,4 @@ function Dashboard({ user, onLogout }) {
   );
 }
 
-export default Dashboard; 
+export default Dashboard;
